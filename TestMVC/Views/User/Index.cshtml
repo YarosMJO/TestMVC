@@ -1,0 +1,138 @@
+﻿@model IEnumerable<TestMVC.Models.User>
+@{
+    ViewData["Title"] = "Index";
+}
+@{
+    Layout = "_Layout";
+}
+<h2>Index</h2>
+<div class="row">
+    @using (Html.BeginForm("Add", "User", FormMethod.Post,
+new { enctype = "multipart/form-data" }))
+    {
+        @Html.AntiForgeryToken()
+        @Html.ValidationSummary(true)
+        <fieldset>
+            <legend>Create User</legend>
+            <div class="row">
+                <div class="col-md-4">
+                    <div class="col-md-5">
+                        <label>User name:</label>
+                    </div>
+                    <div class="col-md-7">
+                        <input class="form-control" name="username" />
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="col-md-5">
+                        <label>password:</label>
+                    </div>
+                    <div class="col-md-7">
+                        <input class="form-control" name="password" />
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <button type="submit" class="btn btn-info">Create</button>
+                </div>
+            </div>
+        </fieldset>
+    }
+</div>
+<div class="row">
+    <fieldset>
+        <legend>Users</legend>
+        <div class="row">
+            <fieldset>
+                <table id="usertable" class="table table-bordered table-striped">
+                    <thead>
+                        <tr>
+                            <th>
+                                @Html.DisplayNameFor(model => model.Id)
+                            </th>
+                            <th>
+                                @Html.DisplayNameFor(model => model.UserName)
+                            </th>
+                            <th>
+                                @Html.DisplayNameFor(model => model.Password)
+                            </th>
+                            <th>Delete</th>
+
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var item in Model)
+                        {
+                            <tr>
+                                <td>
+                                    @Html.DisplayFor(modelItem => item.Id)
+                                </td>
+                                <td>
+                                    @Html.DisplayFor(modelItem => item.UserName)
+                                </td>
+                                <td>
+                                    @Html.DisplayFor(modelItem => item.Password)
+                                </td>
+                                <td></td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </fieldset>
+        </div>
+    </fieldset>
+    @section scripts {
+        <script>
+            $(document).ready(function () {
+                $('#usertable').DataTable({
+                    "processing": true, 
+                    "serverSide": true, 
+                    "filter": true,
+                    "orderMulti": false, 
+                    "ajax": {
+                        "url": "/User/GetList",
+                        "type": "POST",
+                        "datatype": "json"
+                    },
+                    "columnDefs":
+                        [{
+                            "targets": [3],
+                            "visible": true,
+                            "searchable": false,
+                            "orderable": false
+                        }],
+                    columns: [
+                        { data: "id", name: "Id", autoWidth: true },
+                        { data: "userName", name: "UserName", autoWidth: true },
+                        { data: "password", name: "Password", autoWidth: true },
+                        {
+                            data: null, render: function (data, type, row) {
+                                return "<a href='#' class='btn btn-danger' onclick=DeleteData('" + row.id + "'); >Delete</a>";
+                            }
+                        },
+                    ]
+                });
+            });
+
+            function DeleteData(Id) {
+                if (confirm("Are you sure you want to delete ...?")) {
+                    Delete(Id);
+                }
+                else {
+                    return false;
+                }
+            }
+
+            function Delete(Id) {
+
+                $.ajax({
+                    url: '/User/DeleteUser/'+ Id,
+                    type: 'DELETE',
+                    success: function (result) {
+                        oTable = $('#usertable').DataTable();
+                        oTable.draw();
+                    }
+                });
+            }
+        </script>
+    }
+</div>
